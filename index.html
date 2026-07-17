@@ -380,15 +380,17 @@ const api = {
     'Prefer': 'return=representation'
   },
 
-  async get(tabla, filtro='') {
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/${tabla}?${filtro}&order=fecha_reg.asc`, { headers: this.headers });
-    return r.json();
+  async get(tabla, filtro='', orden='') {
+    const url = `${SUPABASE_URL}/rest/v1/${tabla}?select=*${filtro?'&'+filtro:''}${orden?'&order='+orden:''}`;
+    const r = await fetch(url, { headers: this.headers });
+    const data = await r.json();
+    return Array.isArray(data) ? data : [];
   },
 
   async getOne(tabla, filtro) {
     const r = await fetch(`${SUPABASE_URL}/rest/v1/${tabla}?${filtro}&limit=1`, { headers: this.headers });
     const data = await r.json();
-    return data[0] || null;
+    return Array.isArray(data) ? (data[0]||null) : null;
   },
 
   async post(tabla, body) {
@@ -566,9 +568,9 @@ document.getElementById('inp-codigo').addEventListener('keydown',e=>{ if(e.key==
 // ══════════════════════════════════════════════════════
 async function cargarTodo(){
   [cacheEmpresas, cacheUsuarios, cacheAccesos] = await Promise.all([
-    api.get('empresas','select=*'),
-    api.get('usuarios','select=*'),
-    api.get('accesos','select=*&order=ingreso.desc'),
+    api.get('empresas','','fecha_reg.asc'),
+    api.get('usuarios','','fecha_creacion.asc'),
+    api.get('accesos','','ingreso.desc'),
   ]);
 }
 
